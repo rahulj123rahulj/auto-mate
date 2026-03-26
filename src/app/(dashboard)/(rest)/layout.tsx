@@ -6,7 +6,6 @@ const Layout = ({children} : {children :React.ReactNode}) =>{
             <AppHeader/>
             <main className="flex-1">
                 {children}
-
             </main>
         </>
     )
