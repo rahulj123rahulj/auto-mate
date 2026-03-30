@@ -18,7 +18,7 @@ interface WorkflowNodeProps {
 
 export function WorkflowNode({
     children,
-    showToolbar = false,
+    showToolbar = true,
     onDelete,
     onSettings,
     name,

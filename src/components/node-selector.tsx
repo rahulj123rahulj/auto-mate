@@ -62,34 +62,34 @@ export function NodeSelector({
                 toast.error("Only one manual trigger is allowed per workflow");
                 return;
             }
-
-            setNodes((nodes) => {
-                const hasInitialTrigger = nodes.some(
-                    (node) => node.type === NodeType.INITIAL
-                )
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
-                const flowPosition = screenToFlowPosition({
-                    x: centerX + (Math.random() - 0.5) * 200,
-                    y: centerY + (Math.random() - 0.5) * 200
-                });
-
-                const newNode = {
-                    id: createId(),
-                    data: {},
-                    position: flowPosition,
-                    type: selection.type,
-                };
-
-                if (hasInitialTrigger) {
-                    return [newNode];
-                }
-
-                return [...nodes, newNode];
-
-            })
-            onOpenChange(false)
         }
+
+        setNodes((nodes) => {
+            const hasInitialTrigger = nodes.some(
+                (node) => node.type === NodeType.INITIAL
+            )
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const flowPosition = screenToFlowPosition({
+                x: centerX + (Math.random() - 0.5) * 200,
+                y: centerY + (Math.random() - 0.5) * 200
+            });
+
+            const newNode = {
+                id: createId(),
+                data: {},
+                position: flowPosition,
+                type: selection.type,
+            };
+
+            if (hasInitialTrigger) {
+                return [newNode];
+            }
+
+            return [...nodes, newNode];
+
+        })
+        onOpenChange(false)
     }, [
         getNodes,
         onOpenChange,
