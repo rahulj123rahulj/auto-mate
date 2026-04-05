@@ -6,7 +6,6 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/c
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { FieldItem } from "@base-ui/react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -14,6 +13,10 @@ import z from "zod"
 
 
 const formSchema = z.object({
+    variableName: z
+        .string()
+        .min(1, { message: "Variable name is required" })
+        .regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/, { message: "Variable name must start with a letter or underscore and contains only letters, numbers, and underscores" }),
     endpoint: z.url({ message: "Please enter a valid URL" }),
     method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]),
     body: z
@@ -39,6 +42,7 @@ export const HttpRequestDialog = ({
     const form = useForm<HttpRequestFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            variableName: defaultValues.variableName || "",
             endpoint: defaultValues.endpoint || "",
             method: defaultValues.method || "GET",
             body: defaultValues.body || ""
@@ -48,13 +52,15 @@ export const HttpRequestDialog = ({
     useEffect(() => {
         if (open) {
             form.reset({
+                variableName: defaultValues.variableName || "",
                 endpoint: defaultValues.endpoint || "",
-            method: defaultValues.method || "GET",
-            body: defaultValues.body || ""
+                method: defaultValues.method || "GET",
+                body: defaultValues.body || ""
             })
         }
     }, [open, defaultValues, form])
 
+    const watchVariableName = form.watch("variableName") || "myApiCall";
     const watchMethod = form.watch("method");
 
     const showBodyField = ["POST", "PUT", "PATCH"].includes(watchMethod);
@@ -76,6 +82,24 @@ export const HttpRequestDialog = ({
                     onSubmit={form.handleSubmit(handleSubmit)}
                     className="space-y-8 mt-4">
                     <FieldGroup>
+                        <Controller
+                            name="variableName"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="method">Variable Name</FieldLabel>
+                                    <Input
+                                        {...field}
+                                        placeholder="myApiCall"
+                                    />
+                                    <FieldDescription>
+                                        Use this name to reference the result in other nodes:{" "}
+                                        {`{{${watchVariableName}.httpResponse.data}}`}
+                                    </FieldDescription>
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
                         <Controller
                             name="method"
                             control={form.control}
