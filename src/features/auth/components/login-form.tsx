@@ -36,7 +36,7 @@ export function LoginForm() {
         await authClient.signIn.email({
             email: values.email,
             password: values.password,
-            callbackURL: "/"
+            callbackURL: "/",
         },{
             onSuccess: () => {
                 router.push("/")

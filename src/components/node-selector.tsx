@@ -5,7 +5,6 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { NodeType } from "@/generated/prisma/enums"
 import { Separator } from "./ui/separator"
 import { GlobeIcon, MousePointerIcon } from "lucide-react"
-import Image from "next/image"
 import { useReactFlow } from "@xyflow/react"
 import { useCallback } from "react"
 import { toast } from "sonner"
@@ -26,6 +25,12 @@ const triggerNodes: NodeTypeOption[] = [
         label: "Trigger manually",
         description: "Runs the flow on clicking a button. Good for getting started quickly.",
         icon: MousePointerIcon,
+    },
+    {
+        type: NodeType.GOOGLE_FORM_TRIGGER,
+        label: "Google Form",
+        description: "Runs the flow when a Google Form is submitted.",
+        icon: "/logos/googleform.svg",
     }
 ]
 
