@@ -7,6 +7,7 @@ import { getExecuter } from "@/features/executions/lib/executer-registry";
 import { httpRequestChannel } from "@/inngest/channels/http-request";
 import { manualTriggerChannel } from "@/inngest/channels/manual-trigger";
 import { googleFormTriggerChannel } from "@/inngest/channels/google-form-trigger";
+import { stripeTriggerChannel } from "@/inngest/channels/stripe-trigger";
 
 export const executeWorkflow = inngest.createFunction(
     { id: "execute-workflow"},
@@ -15,11 +16,13 @@ export const executeWorkflow = inngest.createFunction(
         channels: [
             httpRequestChannel(),
             manualTriggerChannel(),
-            googleFormTriggerChannel()
+            googleFormTriggerChannel(),
+            stripeTriggerChannel()
         ]
     },
     async ({ event, publish, step }) => {
-        const { workflowId } = event.data.workflowId;
+        console.log(event.data)
+        const workflowId = event.data.workflowId;
         if(!workflowId){
             throw new NonRetriableError("Workflow ID is missing");
         }
