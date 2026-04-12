@@ -1,0 +1,175 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect } from "react"
+import { Controller, useForm } from "react-hook-form"
+import z from "zod"
+import { AVAILABLE_OPENAI_MODELS, DEFAULT_OPENAI_MODEL } from "@/config/constants"
+
+
+const formSchema = z.object({
+    variableName: z
+        .string()
+        .min(1, { message: "Variable name is required" })
+        .regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/, { message: "Variable name must start with a letter or underscore and contains only letters, numbers, and underscores" }),
+    model: z.enum(AVAILABLE_OPENAI_MODELS),
+    systemPrompt: z.string().optional(),
+    userPrompt: z.string().min(1, { message: "User prompt is required" }),
+})
+
+export type OpenAIFormValues = z.infer<typeof formSchema>
+
+interface Props {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    onSubmit: (values: OpenAIFormValues) => void
+    defaultValues?: Partial<OpenAIFormValues>
+}
+
+export const OpenAIDialog = ({
+    open,
+    onOpenChange,
+    onSubmit,
+    defaultValues = {}
+}: Props) => {
+    const form = useForm<OpenAIFormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            variableName: defaultValues.variableName || "",
+            model: defaultValues.model || DEFAULT_OPENAI_MODEL,
+            systemPrompt: defaultValues.systemPrompt || "",
+            userPrompt: defaultValues.userPrompt || ""
+        }
+    })
+
+    useEffect(() => {
+        if (open) {
+            form.reset({
+                variableName: defaultValues.variableName || "",
+                model: defaultValues.model || DEFAULT_OPENAI_MODEL,
+                systemPrompt: defaultValues.systemPrompt || "",
+                userPrompt: defaultValues.userPrompt || ""
+            })
+        }
+    }, [open, defaultValues, form])
+
+    const watchVariableName = form.watch("variableName") || "myOpenAIResponse";
+
+
+    const handleSubmit = (values: z.infer<typeof formSchema>) => {
+        onSubmit(values);
+        onOpenChange(false)
+    }
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>OpenAI Configuration</DialogTitle>
+                    <DialogDescription>
+                        Configure the AI model and prompts for this node.
+                    </DialogDescription>
+                </DialogHeader>
+                <form
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                    className="space-y-8 mt-4">
+                    <FieldGroup>
+                        <Controller
+                            name="variableName"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="method">Variable Name</FieldLabel>
+                                    <Input
+                                        {...field}
+                                        placeholder="myOpenAIResponse"
+                                    />
+                                    <FieldDescription>
+                                        Use this name to reference the result in other nodes:{" "}
+                                        {`{{${watchVariableName}.text}}`}
+                                    </FieldDescription>
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
+                        <Controller
+                            name="model"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="model">Model</FieldLabel>
+                                    <Select name={field.name} value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger id="method" aria-invalid={fieldState.invalid}>
+                                            <SelectValue placeholder="Select a model" />
+                                        </SelectTrigger>
+
+                                        <SelectContent>
+                                            {
+                                                AVAILABLE_OPENAI_MODELS.map((model) => (
+                                                    <SelectItem key={model} value={model}>{model}</SelectItem>
+                                                ))
+                                            }
+                                        </SelectContent>
+                                    </Select>
+                                    <FieldDescription>
+                                        The OpenAI model to use for completion.
+                                    </FieldDescription>
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
+
+                        <Controller
+                            name="systemPrompt"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="method">System Prompt (Optional)</FieldLabel>
+                                    <Textarea
+                                        placeholder={`You are a helpful assistant.`}
+                                        className="min-h-[80px] font-mono text-sm"
+                                        {...field}
+
+                                    />
+                                    <FieldDescription>
+                                        Sets the behaviour of the assistant. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects
+                                    </FieldDescription>
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
+                        <Controller
+                            name="userPrompt"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="method">User Prompt </FieldLabel>
+                                    <Textarea
+                                        placeholder={`Summarize this text: {{json httpResponse.data}}`}
+                                        className="min-h-[120px] font-mono text-sm"
+                                        {...field}
+
+                                    />
+                                    <FieldDescription>
+                                        The prompt to send to the AI. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects
+                                    </FieldDescription>
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
+                    </FieldGroup>
+
+                    <DialogFooter className="mt-4">
+                        <Button type="submit">Save</Button>
+                    </DialogFooter>
+
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
