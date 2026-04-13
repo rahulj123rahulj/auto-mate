@@ -5,6 +5,7 @@ import { geminiChannel } from "@/inngest/channels/gemini";
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { generateText } from "ai";
 import { AVAILABLE_MODELS, DEFAULT_GEMINI_MODEL } from "@/config/constants";
+import { prisma } from "@/lib/db";
 
 
 Handlebars.registerHelper("json", (context) => {
@@ -15,6 +16,7 @@ Handlebars.registerHelper("json", (context) => {
 
 type GeminiData = {
     variableName?: string
+    credentialId?: string
     model?: string
     systemPrompt?: string
     userPrompt?: string
@@ -34,7 +36,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
             status: "loading"
         })
     )
-
+    
     if (!data.variableName) {
         await publish(
             geminiChannel().status({
@@ -43,6 +45,16 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
             })
         )
         throw new NonRetriableError("Gemini node: No variable name configured");
+    }
+
+    if (!data.credentialId) {
+        await publish(
+            geminiChannel().status({
+                nodeId,
+                status: "error"
+            })
+        )
+        throw new NonRetriableError("Gemini node: Credential is required");
     }
 
     if (!data.userPrompt) {
@@ -61,7 +73,24 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
 
     // TODO: Fetch credentials that user selected
 
-    const credentialValue = process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
+    const credential = await step.run("get-credential", async () =>{
+        return prisma.credential.findUniqueOrThrow({
+            where: {
+                id: data.credentialId
+            }
+        })
+    });
+
+    if(!credential) {
+        await publish(
+            geminiChannel().status({
+                nodeId,
+                status: "error"
+            })
+        )
+        throw new NonRetriableError("Gemini node: Credential not found");
+    }
+    const credentialValue = credential.value;
 
     const google = createGoogleGenerativeAI({
         apiKey: credentialValue

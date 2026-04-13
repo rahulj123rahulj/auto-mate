@@ -11,6 +11,9 @@ import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 import { AVAILABLE_OPENAI_MODELS, DEFAULT_OPENAI_MODEL } from "@/config/constants"
+import { CredentialType } from "@/generated/prisma/enums"
+import { useCredentialsByType } from "@/features/credentials/hooks/use-credentials"
+import Image from "next/image"
 
 
 const formSchema = z.object({
@@ -18,6 +21,7 @@ const formSchema = z.object({
         .string()
         .min(1, { message: "Variable name is required" })
         .regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/, { message: "Variable name must start with a letter or underscore and contains only letters, numbers, and underscores" }),
+    credentialId: z.string().min(1, { message: "Credential is required" }),
     model: z.enum(AVAILABLE_OPENAI_MODELS),
     systemPrompt: z.string().optional(),
     userPrompt: z.string().min(1, { message: "User prompt is required" }),
@@ -38,10 +42,15 @@ export const OpenAIDialog = ({
     onSubmit,
     defaultValues = {}
 }: Props) => {
+    const {
+        data: credentials,
+        isLoading: isLoadingCredentials
+    } = useCredentialsByType(CredentialType.OPENAI);
     const form = useForm<OpenAIFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             variableName: defaultValues.variableName || "",
+            credentialId: defaultValues.credentialId || "",
             model: defaultValues.model || DEFAULT_OPENAI_MODEL,
             systemPrompt: defaultValues.systemPrompt || "",
             userPrompt: defaultValues.userPrompt || ""
@@ -52,6 +61,7 @@ export const OpenAIDialog = ({
         if (open) {
             form.reset({
                 variableName: defaultValues.variableName || "",
+                credentialId: defaultValues.credentialId || "",
                 model: defaultValues.model || DEFAULT_OPENAI_MODEL,
                 systemPrompt: defaultValues.systemPrompt || "",
                 userPrompt: defaultValues.userPrompt || ""
@@ -93,6 +103,36 @@ export const OpenAIDialog = ({
                                         Use this name to reference the result in other nodes:{" "}
                                         {`{{${watchVariableName}.text}}`}
                                     </FieldDescription>
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
+                        <Controller
+                            control={form.control}
+                            name="credentialId"
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="type">OpenAI Credential</FieldLabel>
+                                    <Select name={field.name} value={field.value} disabled={
+                                        isLoadingCredentials ||
+                                        credentials?.length === 0
+                                    } onValueChange={field.onChange}>
+                                        <SelectTrigger id="type" className="w-full" aria-invalid={fieldState.invalid}>
+                                            <SelectValue placeholder="Select a credential" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {
+                                                credentials?.map(({ id, name }) => (
+                                                    <SelectItem key={id} value={id}>
+                                                        <div className="flex items-center gap-2">
+                                                            <Image src="/logos/openai.svg" width={16} height={16} alt="OpenAI" />
+                                                            {name}
+                                                        </div>
+                                                    </SelectItem>
+                                                ))
+                                            }
+                                        </SelectContent>
+                                    </Select>
                                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                 </Field>
                             )}

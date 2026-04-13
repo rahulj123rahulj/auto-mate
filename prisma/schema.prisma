@@ -8,16 +8,17 @@ datasource db {
 }
 
 model User {
-  id            String     @id
+  id            String       @id
   name          String
-  email         String     @unique
-  emailVerified Boolean    @default(false)
+  email         String       @unique
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   accounts      Account[]
   sessions      Session[]
   workflows     Workflow[]
+  credentials   Credential[]
 
   @@map("user")
 }
@@ -69,6 +70,26 @@ model Verification {
   @@map("verification")
 }
 
+model Credential {
+  id        String   @id @default(cuid())
+  name      String
+  value     String
+  type      CredentialType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  Node Node[]
+}
+
+enum CredentialType {
+  OPENAI
+  ANTHROPIC
+  GEMINI
+}
+
 model Workflow {
   id        String   @id @default(cuid())
   name      String
@@ -103,11 +124,14 @@ model Node {
   position Json
   data     Json     @default("{}")
 
-  outputConnections Connection[] @relation("FromNode")
-  inputConnections Connection[] @relation("ToNode")
+  credentialId String?
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  outputConnections Connection[] @relation("FromNode")
+  inputConnections  Connection[] @relation("ToNode")
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  credential Credential? @relation(fields: [credentialId], references: [id])
 }
 
 model Connection {
@@ -122,10 +146,10 @@ model Connection {
   toNode   Node   @relation("ToNode", fields: [toNodeId], references: [id], onDelete: Cascade)
 
   fromOutput String @default("main")
-  toInput String @default("main")
+  toInput    String @default("main")
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([fromNodeId, toNodeId, fromOutput, toInput])
 }

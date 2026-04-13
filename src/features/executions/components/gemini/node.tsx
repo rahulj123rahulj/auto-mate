@@ -12,6 +12,7 @@ import { AVAILABLE_MODELS, DEFAULT_GEMINI_MODEL } from "@/config/constants";
 
 type GeminiNodeData = {
     variableName?: string,
+    credentialId?: string
     model?: typeof AVAILABLE_MODELS[number],
     systemPrompt?: string,
     userPrompt?: string,
