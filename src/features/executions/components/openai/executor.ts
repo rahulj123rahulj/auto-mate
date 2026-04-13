@@ -27,6 +27,7 @@ export const OpenAIExecutor: NodeExecutor<OpenAIData> = async ({
     nodeId,
     context,
     step,
+    userId,
     publish
 }) => {
 
@@ -74,7 +75,8 @@ export const OpenAIExecutor: NodeExecutor<OpenAIData> = async ({
     const credential = await step.run("get-credential", async () => {
         return prisma.credential.findUniqueOrThrow({
             where: {
-                id: data.credentialId
+                id: data.credentialId,
+                userId
             }
         })
     });
