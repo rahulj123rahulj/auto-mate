@@ -1,6 +1,7 @@
 import { PAGINATION } from "@/config/constants"
 import { CredentialType } from "@/generated/prisma/enums"
 import { prisma } from "@/lib/db"
+import { encrypt } from "@/lib/encryption"
 import { createTRPCRouter, premiumProcedure, protectedProcedure } from "@/trpc/init"
 import z from "zod"
 
@@ -22,7 +23,7 @@ export const credentialsRouter = createTRPCRouter({
                     name,
                     userId: ctx.auth.user.id,
                     type,
-                    value
+                    value: encrypt(value)
                 }
             })
         }),
@@ -47,7 +48,7 @@ export const credentialsRouter = createTRPCRouter({
                 value: z.string().min(1, "Value is required")
             })).mutation(async ({ ctx, input }) => {
                 const { id, name, value, type } = input;
-                const credential = await prisma.credential.findUniqueOrThrow({
+                await prisma.credential.findUniqueOrThrow({
                     where: {
                         id,
                         userId: ctx.auth.user.id
@@ -62,7 +63,7 @@ export const credentialsRouter = createTRPCRouter({
                     data: {
                         name,
                         type,
-                        value
+                        value: encrypt(value)
                     }
                 })
             }),

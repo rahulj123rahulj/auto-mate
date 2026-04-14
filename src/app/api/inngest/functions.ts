@@ -15,7 +15,10 @@ import { discordChannel } from "@/inngest/channels/discord";
 import { slackChannel } from "@/inngest/channels/slack";
 
 export const executeWorkflow = inngest.createFunction(
-    { id: "execute-workflow" },
+    { 
+        id: "execute-workflow",
+        retries: 0,
+    },
     {
         event: "workflows/execute.workflow",
         channels: [
