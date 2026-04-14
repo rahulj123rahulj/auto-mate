@@ -20,10 +20,10 @@ const registerSchema = z.object({
     password: z.string().min(8, "Password is required"),
     confirmPassword: z.string()
 })
-.refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-});
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    });
 
 type RegisterFormValues = z.infer<typeof registerSchema>
 
@@ -45,9 +45,9 @@ export function RegisterForm() {
             name: values.name,
             email: values.email,
             password: values.password,
-            callbackURL:"/"
-        },{
-            onSuccess: ()=>{
+            callbackURL: "/"
+        }, {
+            onSuccess: () => {
                 router.push("/")
             },
             onError: (ctx) => {
@@ -58,6 +58,17 @@ export function RegisterForm() {
     }
 
     const isPending = form.formState.isSubmitting;
+
+    const signInGithub = async () => {
+        await authClient.signIn.social({
+            provider: "github"
+        })
+    }
+    const signInGoogle = async () => {
+        await authClient.signIn.social({
+            provider: "google"
+        })
+    }
 
 
     return <div className="flex flex-col gap-6">
@@ -78,8 +89,9 @@ export function RegisterForm() {
                                     className="w-full"
                                     type="button"
                                     disabled={isPending}
+                                    onClick={signInGithub}
                                 >
-                                <Image src="/logos/github.svg" alt="github" width={20} height={20} />
+                                    <Image src="/logos/github.svg" alt="github" width={20} height={20} />
                                     Continue with Github
                                 </Button>
                                 <Button
@@ -87,8 +99,9 @@ export function RegisterForm() {
                                     className="w-full"
                                     type="button"
                                     disabled={isPending}
+                                    onClick={signInGoogle}
                                 >
-                                <Image src="/logos/google.svg" alt="google" width={20} height={20} />
+                                    <Image src="/logos/google.svg" alt="google" width={20} height={20} />
                                     Continue with Google
                                 </Button>
                             </div>

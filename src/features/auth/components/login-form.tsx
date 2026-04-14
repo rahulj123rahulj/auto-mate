@@ -37,7 +37,7 @@ export function LoginForm() {
             email: values.email,
             password: values.password,
             callbackURL: "/",
-        },{
+        }, {
             onSuccess: () => {
                 router.push("/")
             },
@@ -50,6 +50,17 @@ export function LoginForm() {
 
     const isPending = form.formState.isSubmitting;
 
+    const signInGithub = async () => {
+        await authClient.signIn.social({
+            provider: "github"
+        })
+    }
+    const signInGoogle = async () => {
+        await authClient.signIn.social({
+            provider: "google"
+        })
+    }
+
 
     return <div className="flex flex-col gap-6">
         <Card>
@@ -61,7 +72,7 @@ export function LoginForm() {
                     Login to continue
                 </CardDescription>
                 <CardContent className="my-4">
-                    <form  onSubmit={form.handleSubmit(onSubmit)}>
+                    <form onSubmit={form.handleSubmit(onSubmit)}>
                         <div className="grid gap-6 ">
                             <div className="flex flex-col gap-4">
                                 <Button
@@ -69,6 +80,7 @@ export function LoginForm() {
                                     className="w-full"
                                     type="button"
                                     disabled={isPending}
+                                    onClick={signInGithub}
                                 >
                                     <Image src="/logos/github.svg" alt="github" width={20} height={20} />
                                     Continue with Github
@@ -78,6 +90,7 @@ export function LoginForm() {
                                     className="w-full"
                                     type="button"
                                     disabled={isPending}
+                                    onClick={signInGoogle}
                                 >
                                     <Image src="/logos/google.svg" alt="google" width={20} height={20} />
                                     Continue with Google
