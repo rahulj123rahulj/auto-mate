@@ -54,7 +54,6 @@ export function RegisterForm() {
                 toast.error(ctx.error.message)
             }
         });
-        router.push("/dashboard");
     }
 
     const isPending = form.formState.isSubmitting;
