@@ -23,12 +23,11 @@ const menutItems = [
                 icon: KeyIcon,
                 url: "/credentials"
             },
-            {
-                title: "Executions",
-                icon: HistoryIcon,
-                url: "/executions"
-
-            }
+            // {
+            //     title: "Executions",
+            //     icon: HistoryIcon,
+            //     url: "/executions"
+            // }
         ]
     }
 ]
