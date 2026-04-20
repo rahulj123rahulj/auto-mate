@@ -75,7 +75,7 @@ export const HttpRequestDialog = ({
                 <DialogHeader>
                     <DialogTitle>HTTP Request</DialogTitle>
                     <DialogDescription>
-                        Configure settings for the HTTP Request node.
+                        Configure settings for the HTTP Request nodes.
                     </DialogDescription>
                 </DialogHeader>
                 <form
